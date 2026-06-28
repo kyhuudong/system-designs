@@ -211,3 +211,50 @@ test_scaffold_does_not_modify_templates() {
   grep -q '__PROJECT_NAME__' "$box/_templates/node/package.json" || { teardown_sandbox "$box"; return 1; }
   teardown_sandbox "$box"
 }
+
+# ---------- regression tests for review findings ----------
+
+test_scaffold_bootstraps_env_from_example() {
+  local box; box=$(setup_sandbox)
+  ( cd "$box" && ./scripts/new-project.sh caching env-check node >/dev/null )
+  local target="$box/caching/env-check"
+  if [ ! -f "$target/.env" ]; then
+    echo "missing .env (should be bootstrapped from .env.example)"
+    teardown_sandbox "$box"
+    return 1
+  fi
+  # .env should match .env.example content (post-substitution)
+  diff -q "$target/.env" "$target/.env.example" >/dev/null || {
+    echo ".env content differs from .env.example"
+    teardown_sandbox "$box"
+    return 1
+  }
+  teardown_sandbox "$box"
+}
+
+test_scaffold_preserves_file_permissions() {
+  local box; box=$(setup_sandbox)
+  ( cd "$box" && ./scripts/new-project.sh caching perm-check node >/dev/null )
+  local target="$box/caching/perm-check"
+  # On macOS use `stat -f %A`, on Linux use `stat -c %a`. Pick whichever works.
+  local mode
+  if mode=$(stat -f '%A' "$target/src/index.ts" 2>/dev/null); then
+    :
+  elif mode=$(stat -c '%a' "$target/src/index.ts" 2>/dev/null); then
+    :
+  else
+    echo "could not stat file mode"
+    teardown_sandbox "$box"
+    return 1
+  fi
+  # Mode should grant group+other read (i.e. not 600 / 400 / etc.). Accept 644 or 664.
+  case "$mode" in
+    644|664|666) ;;
+    *)
+      echo "unexpected file mode $mode for src/index.ts (expected 644/664/666)"
+      teardown_sandbox "$box"
+      return 1
+      ;;
+  esac
+  teardown_sandbox "$box"
+}

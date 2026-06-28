@@ -107,7 +107,7 @@ This eliminates the need to remember language-specific commands when context-swi
 ### Node.js Template (`_templates/node/`)
 
 - **Language:** TypeScript
-- **Package manager:** `pnpm` (lockfile committed)
+- **Package manager:** `pnpm` (lockfile generated and committed per-project on first `make install`; not shipped in the template)
 - **Test runner:** `vitest`
 - **Lint/format:** `eslint` + `prettier`
 - **Runtime image:** `node:20-alpine` (multi-stage Dockerfile)
@@ -117,13 +117,13 @@ This eliminates the need to remember language-specific commands when context-swi
   - `README.md` pre-filled with the design doc template
   - `src/index.ts` (minimal HTTP server placeholder)
   - `tests/smoke.test.ts` (basic passing test)
-  - `package.json`, `pnpm-lock.yaml`, `tsconfig.json`, `.eslintrc`, `.prettierrc`
-  - `.env.example`
+  - `package.json`, `tsconfig.json`, `.eslintrc`, `.prettierrc`
+  - `.env.example` (the scaffolder also creates a working `.env` from it)
 
 ### Python Template (`_templates/python/`)
 
 - **Language:** Python 3.12
-- **Package manager:** `uv` (lockfile committed)
+- **Package manager:** `uv` (lockfile generated and committed per-project on first `make install`; not shipped in the template)
 - **Test runner:** `pytest`
 - **Lint/format:** `ruff`
 - **Runtime image:** `python:3.12-slim` (multi-stage Dockerfile)
@@ -133,8 +133,8 @@ This eliminates the need to remember language-specific commands when context-swi
   - `README.md` pre-filled with the design doc template
   - `src/main.py` (minimal HTTP server placeholder)
   - `tests/test_smoke.py` (basic passing test)
-  - `pyproject.toml`, `uv.lock`
-  - `.env.example`
+  - `pyproject.toml`
+  - `.env.example` (the scaffolder also creates a working `.env` from it)
 
 ### Scaffolding Script (`scripts/new-project.sh`)
 

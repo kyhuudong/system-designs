@@ -85,7 +85,9 @@ mkdir -p "$(dirname "$TARGET_DIR")"
 cp -R "$TEMPLATE_DIR" "$TARGET_DIR"
 
 # Substitute placeholders in every regular file in the target.
-# Using a tmp file pattern because BSD sed (macOS) and GNU sed differ on `-i`.
+# Use `cat > "$f"` (instead of `mv tmp f`) to preserve the original file's
+# permission bits — `mv` would adopt mktemp's default 0600, silently downgrading
+# the template's permissions on every scaffolded file.
 sub_in_file() {
   local f="$1"
   local tmp
@@ -95,7 +97,8 @@ sub_in_file() {
     -e "s|__CATEGORY__|${CATEGORY}|g" \
     -e "s|__PROJECT_TITLE__|${PROJECT_TITLE}|g" \
     "$f" > "$tmp"
-  mv "$tmp" "$f"
+  cat "$tmp" > "$f"
+  rm -f "$tmp"
 }
 
 # Walk all regular files; skip binaries by checking with `file` would be more robust,
@@ -103,6 +106,13 @@ sub_in_file() {
 while IFS= read -r -d '' f; do
   sub_in_file "$f"
 done < <(find "$TARGET_DIR" -type f -print0)
+
+# Bootstrap a .env from .env.example so `make up` / `docker compose up` works
+# immediately — docker compose treats a missing env_file as a fatal error.
+# The .env is gitignored; users edit it freely without leaking to git.
+if [ -f "$TARGET_DIR/.env.example" ] && [ ! -f "$TARGET_DIR/.env" ]; then
+  cp "$TARGET_DIR/.env.example" "$TARGET_DIR/.env"
+fi
 
 cat <<EOF
 ✓ Scaffolded $CATEGORY/$NAME ($LANG)
