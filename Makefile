@@ -5,7 +5,7 @@
 SHELL := /usr/bin/env bash
 COMPOSE := docker compose -f _services/docker-compose.yml
 
-.PHONY: help services-up services-down services-logs services-status services-reset services-reset-force
+.PHONY: help services-up services-down services-logs services-status services-reset services-reset-force recipes-test
 
 # Bare `make` prints help.
 .DEFAULT_GOAL := help
@@ -44,3 +44,6 @@ services-reset-force: ## Same as services-reset but skips the confirmation promp
 	$(COMPOSE) down -v
 	@find _services/data -mindepth 1 -maxdepth 1 ! -name .gitkeep -exec rm -rf {} +
 	@echo "Done. _services/data/ wiped."
+
+recipes-test: ## Run every _recipes/* test in an isolated tmp dir
+	@scripts/recipes-test.sh
