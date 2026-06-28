@@ -62,6 +62,10 @@ if [ -e "$TARGET_DIR" ]; then
   die "target already exists: $TARGET_DIR"
 fi
 
+# Atomic: if anything below fails, remove the half-created target.
+# $TARGET_DIR was verified to NOT exist above, so removing it is safe.
+trap 'rc=$?; if [ -n "${TARGET_DIR:-}" ] && [ -e "$TARGET_DIR" ]; then rm -rf "$TARGET_DIR"; echo "scaffold failed; cleaned up $TARGET_DIR" >&2; fi; exit $rc' ERR
+
 # Build a Title Case version of the kebab-case name: "url-shortener" -> "Url Shortener".
 # Written for bash 3.2 compatibility (macOS default) — avoids ${var^} which needs bash 4+.
 to_title() {
@@ -127,3 +131,6 @@ Next steps:
 Remember to add an entry under "### $CATEGORY" in the top-level README catalog
 when you start or finish the project.
 EOF
+
+# Clear the rollback trap — we made it to the end successfully.
+trap - ERR

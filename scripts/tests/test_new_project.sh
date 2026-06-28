@@ -258,3 +258,33 @@ test_scaffold_preserves_file_permissions() {
   esac
   teardown_sandbox "$box"
 }
+
+# ---------- regression: scaffold must roll back on mid-run failure ----------
+
+test_scaffold_rolls_back_on_mid_run_failure() {
+  local box; box=$(setup_sandbox)
+  # Sabotage: make a template file unreadable so 'cp -R' fails partway through.
+  chmod 000 "$box/_templates/node/package.json"
+
+  set +e
+  ( cd "$box" && ./scripts/new-project.sh caching rollback-check node >/dev/null 2>&1 )
+  local rc=$?
+  set -e
+
+  # Restore perms before any teardown action would care.
+  chmod 644 "$box/_templates/node/package.json" 2>/dev/null
+
+  if [ $rc -eq 0 ]; then
+    echo "expected non-zero exit, got 0"
+    teardown_sandbox "$box"
+    return 1
+  fi
+
+  if [ -e "$box/caching/rollback-check" ]; then
+    echo "expected $box/caching/rollback-check to NOT exist after failure"
+    ls -la "$box/caching" 2>&1
+    teardown_sandbox "$box"
+    return 1
+  fi
+  teardown_sandbox "$box"
+}
