@@ -7,6 +7,9 @@ Every project is self-contained: design doc + code + `docker-compose.yml`, run l
 
 **Architecture:** [`docs/superpowers/specs/2026-06-28-system-designs-repo-architecture-design.md`](./docs/superpowers/specs/2026-06-28-system-designs-repo-architecture-design.md)
 
+> **Working with an AI coding agent?** Point it at [`AGENTS.md`](./AGENTS.md) first.
+> Repo-wide conventions, command index, and lifecycle all live there.
+
 ## Quick start
 
 Spin up a new project:
