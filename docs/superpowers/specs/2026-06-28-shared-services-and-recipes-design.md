@@ -145,6 +145,20 @@ _recipes/
 
 #### Initial Recipe Set
 
+The full target set below is the design goal. Plan B (`docs/superpowers/plans/2026-06-28-recipes-library.md`) implements a focused starter subset (4 utilities per language + 2 compose snippets + the test runner). Cloud-client recipes and additional compose snippets are deferred to a follow-up plan because they require the test runner to handle external dependencies (boto3, AWS SDK v3, etc.), which is a larger design problem.
+
+**Implemented in Plan B (starter set):**
+- `python/{retry,logger,env,healthcheck}.py` + tests
+- `node/{retry,logger,env,healthcheck}.ts` + tests
+- `compose/{postgres-with-adminer,kafka-kraft}.yml`
+- `scripts/recipes-test.sh` + `make recipes-test`
+
+**Deferred to a follow-up plan:**
+- Python `timing.py`, `localstack_clients.py`, `pubsub_emulator.py`
+- Node `timing.ts`, `localstack-clients.ts`, `pubsub-emulator.ts`
+- Compose `postgres-replication.yml`, `redis-cluster.yml`, `kafka-3-broker.yml`, `nginx-load-balancer.yml`
+- A recipe-runner extension that parses `# requires: <pkg>` headers and threads them through to uv / npm install
+
 **`_recipes/compose/`:**
 - `postgres-replication.yml` — primary + N async replicas to practice physical replication
 - `postgres-with-adminer.yml` — Postgres + Adminer web UI
