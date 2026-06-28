@@ -1,0 +1,6 @@
+# Scratch rendering artifacts (anything ending .tmp.svg or .tmp.png)
+*.tmp.svg
+*.tmp.png
+
+# Mermaid CLI puppeteer dump on failure
+puppeteer-error.html
