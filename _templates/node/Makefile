@@ -16,7 +16,7 @@ build:
 	pnpm build
 
 test:
-	pnpm test --run
+	pnpm test
 
 lint:
 	pnpm lint

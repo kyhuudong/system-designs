@@ -326,7 +326,7 @@ build:
 	pnpm build
 
 test:
-	pnpm test --run
+	pnpm test
 
 lint:
 	pnpm lint
@@ -353,7 +353,8 @@ clean:
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "test": "vitest",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "lint": "eslint . && prettier --check ."
   },
   "dependencies": {},
@@ -598,9 +599,9 @@ find . -type f \( -name '*.json' -o -name '*.ts' -o -name '*.yml' -o -name 'Make
   -e 's/__PROJECT_TITLE__/Sanity App/g' {} \;
 find . -name '*.bak' -delete
 pnpm install
-pnpm test --run
+pnpm test
 ```
-Expected: `pnpm install` succeeds, `pnpm test --run` reports 1 passing test (`arithmetic works`).
+Expected: `pnpm install` succeeds, `pnpm test` reports 1 passing test (`arithmetic works`).
 
 Clean up:
 ```bash
@@ -1632,9 +1633,9 @@ cd "$SANDBOX"
 ./scripts/new-project.sh caching e2e-node-check node
 cd caching/e2e-node-check
 pnpm install
-pnpm test --run
+pnpm test
 ```
-Expected: `pnpm test --run` reports 1 passed test (`arithmetic works`).
+Expected: `pnpm test` reports 1 passed test (`arithmetic works`).
 
 - [ ] **Step 2: Scaffold a throwaway Python project in the same sandbox and run its tests**
 
