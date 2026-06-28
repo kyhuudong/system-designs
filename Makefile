@@ -5,7 +5,7 @@
 SHELL := /usr/bin/env bash
 COMPOSE := docker compose -f _services/docker-compose.yml
 
-.PHONY: help services-up services-down services-logs services-status services-reset services-reset-force recipes-test
+.PHONY: help services-up services-down services-logs services-status services-reset services-reset-force recipes-test new
 
 # Bare `make` prints help.
 .DEFAULT_GOAL := help
@@ -47,3 +47,12 @@ services-reset-force: ## Same as services-reset but skips the confirmation promp
 
 recipes-test: ## Run every _recipes/* test in an isolated tmp dir
 	@scripts/recipes-test.sh
+
+new: ## Scaffold a project: make new CATEGORY=<cat> NAME=<name> LANG=<node|python>
+	@if [ -z "$(CATEGORY)" ] || [ -z "$(NAME)" ] || [ -z "$(LANG)" ]; then \
+	  echo "error: missing required vars" >&2; \
+	  echo "usage: make new CATEGORY=<category> NAME=<project-name> LANG=<node|python>" >&2; \
+	  echo "example: make new CATEGORY=apps NAME=url-shortener LANG=python" >&2; \
+	  exit 1; \
+	fi
+	./scripts/new-project.sh "$(CATEGORY)" "$(NAME)" "$(LANG)"

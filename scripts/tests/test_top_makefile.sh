@@ -12,6 +12,8 @@ EXPECTED_TARGETS=(
   services-status
   services-reset
   services-reset-force
+  recipes-test
+  new
   help
 )
 
@@ -102,5 +104,44 @@ test_services_reset_force_wipes_data() {
 
   [ -f "$box/_services/data/.gitkeep" ] || { echo ".gitkeep removed"; rm -rf "$box"; return 1; }
   [ ! -e "$box/_services/data/sentinel" ] || { echo "sentinel survived"; rm -rf "$box"; return 1; }
+  rm -rf "$box"
+}
+
+# ---------- `make new` target ----------
+
+test_make_new_target_exists() {
+  grep -qE "^new[[:space:]]*:" "$MAKEFILE"
+}
+
+test_make_new_help_shows_usage_example() {
+  local out
+  out=$(cd "$REPO_ROOT" && make help 2>&1)
+  echo "$out" | grep -qE "^[[:space:]]*new\b"
+}
+
+test_make_new_without_vars_fails() {
+  set +e
+  ( cd "$REPO_ROOT" && make new >/dev/null 2>&1 )
+  local rc=$?
+  set -e
+  [ $rc -ne 0 ]
+}
+
+test_make_new_with_vars_succeeds_in_sandbox() {
+  local box; box=$(mktemp -d)
+  mkdir -p "$box/scripts"
+  cp -R "$REPO_ROOT/_templates" "$box/_templates"
+  cp "$REPO_ROOT/scripts/new-project.sh" "$box/scripts/new-project.sh"
+  chmod +x "$box/scripts/new-project.sh"
+  cp "$REPO_ROOT/Makefile" "$box/Makefile"
+
+  ( cd "$box" && make new CATEGORY=apps NAME=make-new-test LANG=node >/dev/null 2>&1 )
+  local rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "make new exited $rc"
+    rm -rf "$box"
+    return 1
+  fi
+  [ -d "$box/apps/make-new-test" ] || { echo "project dir not created"; rm -rf "$box"; return 1; }
   rm -rf "$box"
 }
