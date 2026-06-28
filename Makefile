@@ -37,8 +37,10 @@ services-reset: ## Stop services and WIPE _services/data/ (prompts for confirmat
 	    echo "Aborted."; exit 1; \
 	  fi
 	$(COMPOSE) down -v
+	@find _services/data -mindepth 1 -maxdepth 1 ! -name .gitkeep -exec rm -rf {} +
 	@echo "Done. _services/data/ wiped."
 
 services-reset-force: ## Same as services-reset but skips the confirmation prompt
 	$(COMPOSE) down -v
+	@find _services/data -mindepth 1 -maxdepth 1 ! -name .gitkeep -exec rm -rf {} +
 	@echo "Done. _services/data/ wiped."

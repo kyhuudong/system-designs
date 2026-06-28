@@ -56,3 +56,51 @@ test_top_makefile_reset_requires_confirmation() {
   set -e
   [ $rc -ne 0 ]
 }
+
+# ---------- regression: services-reset must actually wipe bind-mount data ----------
+
+test_wipe_command_removes_subdirs_preserves_gitkeep() {
+  local box; box=$(mktemp -d)
+  mkdir -p "$box/_services/data/localstack" "$box/_services/data/azurite"
+  : > "$box/_services/data/.gitkeep"
+  : > "$box/_services/data/localstack/state.dat"
+  : > "$box/_services/data/azurite/keys.bin"
+
+  ( cd "$box" && find _services/data -mindepth 1 -maxdepth 1 ! -name .gitkeep -exec rm -rf {} + )
+
+  [ -f "$box/_services/data/.gitkeep" ] || { echo ".gitkeep removed"; rm -rf "$box"; return 1; }
+  [ ! -e "$box/_services/data/localstack" ] || { echo "localstack survived"; rm -rf "$box"; return 1; }
+  [ ! -e "$box/_services/data/azurite" ] || { echo "azurite survived"; rm -rf "$box"; return 1; }
+  rm -rf "$box"
+}
+
+test_services_reset_force_wipes_data() {
+  # Sandbox: copy Makefile + compose file + a sentinel into _services/data/
+  local box; box=$(mktemp -d)
+  mkdir -p "$box/_services/data/sentinel"
+  : > "$box/_services/data/.gitkeep"
+  : > "$box/_services/data/sentinel/marker.txt"
+  cp "$REPO_ROOT/Makefile" "$box/Makefile"
+  mkdir -p "$box/_services"
+  cp "$REPO_ROOT/_services/docker-compose.yml" "$box/_services/docker-compose.yml"
+
+  # Run the target. docker compose down -v on a non-running stack should succeed.
+  # If docker isn't available, the whole test SKIPs cleanly.
+  if ! command -v docker >/dev/null 2>&1 || ! docker compose version >/dev/null 2>&1; then
+    echo "SKIP: docker not available"
+    rm -rf "$box"
+    return 0
+  fi
+
+  ( cd "$box" && make services-reset-force >/dev/null 2>&1 )
+  local rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "make services-reset-force exited $rc"
+    rm -rf "$box"
+    return 1
+  fi
+
+  [ -f "$box/_services/data/.gitkeep" ] || { echo ".gitkeep removed"; rm -rf "$box"; return 1; }
+  [ ! -e "$box/_services/data/sentinel" ] || { echo "sentinel survived"; rm -rf "$box"; return 1; }
+  rm -rf "$box"
+}
