@@ -30,6 +30,21 @@ make down    # stop
 
 `📝 planned` · `🚧 in progress` · `✅ done` · `🧊 paused` · `🗑️ archived`
 
+## Side services
+
+The repo ships a sandbox of cloud emulators and dev infrastructure that every
+project can use, started with one command:
+
+```bash
+make services-up       # bring up LocalStack, MinIO, Mailhog, Jaeger, ...
+make services-status
+make services-down
+make services-reset    # wipe persistent volumes under _services/data/
+```
+
+See [`_services/README.md`](./_services/README.md) for endpoints, env vars, and
+client examples. Projects opt in by setting env vars (e.g., `AWS_ENDPOINT_URL=http://localhost:4566`).
+
 ## Catalog
 
 <!-- Update this catalog manually when you finish or abandon a project. -->

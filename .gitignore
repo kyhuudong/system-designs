@@ -41,3 +41,7 @@ docker-compose.override.yml
 coverage/
 .coverage
 htmlcov/
+
+# Shared side services persistent state (kept out of git; .gitkeep preserved)
+_services/data/*
+!_services/data/.gitkeep
