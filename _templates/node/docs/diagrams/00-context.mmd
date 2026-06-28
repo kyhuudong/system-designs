@@ -1,0 +1,22 @@
+%%
+%% C4 Context — __PROJECT_TITLE__
+%%
+%% This is the highest-level view: WHO uses your system, and WHAT
+%% external systems does it talk to. Avoid internals; one box per
+%% actor and one box per external dependency.
+%%
+%% Render with `make diagram` from the project root.
+%%
+
+flowchart LR
+    user["👤 User<br/>Client of __PROJECT_NAME__"]
+    app["__PROJECT_NAME__<br/>(this system)"]
+    extdb[("External datastore<br/>(e.g., Postgres, S3, ...)")]
+    extsvc["Downstream service<br/>(e.g., payment provider)"]
+
+    user -->|HTTP / RPC| app
+    app -->|reads / writes| extdb
+    app -->|calls| extsvc
+
+    classDef thisSystem fill:#dbeafe,stroke:#1d4ed8,stroke-width:2px;
+    class app thisSystem

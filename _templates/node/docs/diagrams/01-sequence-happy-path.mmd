@@ -1,0 +1,27 @@
+%%
+%% Sequence — happy path for the primary use case of __PROJECT_TITLE__
+%%
+%% Pick ONE flow that exercises the most important behavior end-to-end
+%% (e.g., for a URL shortener: "POST /shorten then GET /:code redirects").
+%% Show every hop the request takes, including caches and queues.
+%%
+%% Render with `make diagram` from the project root.
+%%
+
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant API as __PROJECT_NAME__ API
+    participant Cache as Cache (optional)
+    participant DB as Datastore
+
+    U->>API: <primary request>
+    API->>Cache: lookup
+    alt cache hit
+        Cache-->>API: cached value
+    else cache miss
+        API->>DB: read
+        DB-->>API: result
+        API->>Cache: store
+    end
+    API-->>U: response (200)
