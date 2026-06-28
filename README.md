@@ -47,19 +47,8 @@ client examples. Projects opt in by setting env vars (e.g., `AWS_ENDPOINT_URL=ht
 
 ## Catalog
 
-<!-- Update this catalog manually when you finish or abandon a project. -->
+<!-- CATALOG:START -->
 
-### caching
-_No projects yet._
+_No projects yet. Run `make new CATEGORY=<cat> NAME=<name> LANG=<node|python>`._
 
-### messaging
-_No projects yet._
-
-### databases
-_No projects yet._
-
-### primitives
-_No projects yet._
-
-### apps
-_No projects yet._
+<!-- CATALOG:END -->

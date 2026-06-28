@@ -5,7 +5,7 @@
 SHELL := /usr/bin/env bash
 COMPOSE := docker compose -f _services/docker-compose.yml
 
-.PHONY: help services-up services-down services-logs services-status services-reset services-reset-force recipes-test new
+.PHONY: help services-up services-down services-logs services-status services-reset services-reset-force recipes-test new catalog
 
 # Bare `make` prints help.
 .DEFAULT_GOAL := help
@@ -56,3 +56,6 @@ new: ## Scaffold a project: make new CATEGORY=<cat> NAME=<name> LANG=<node|pytho
 	  exit 1; \
 	fi
 	./scripts/new-project.sh "$(CATEGORY)" "$(NAME)" "$(LANG)"
+
+catalog: ## Regenerate the project catalog in README.md
+	@scripts/update-catalog.sh

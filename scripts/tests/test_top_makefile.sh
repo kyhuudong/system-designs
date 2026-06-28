@@ -14,6 +14,7 @@ EXPECTED_TARGETS=(
   services-reset-force
   recipes-test
   new
+  catalog
   help
 )
 
