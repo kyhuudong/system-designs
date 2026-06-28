@@ -129,7 +129,8 @@ test_scaffold_node_creates_expected_files() {
   local target="$box/caching/url-shortener"
   for f in README.md Dockerfile docker-compose.yml Makefile package.json tsconfig.json \
            .eslintrc.json .prettierrc .env.example .gitignore .dockerignore \
-           src/index.ts tests/smoke.test.ts; do
+           src/index.ts tests/smoke.test.ts \
+           AGENTS.md DONE.md AGENT-PROMPT.md notes/gotchas.md; do
     if [ ! -f "$target/$f" ]; then
       echo "missing file: $f"
       teardown_sandbox "$box"
@@ -148,7 +149,8 @@ test_scaffold_python_creates_expected_files() {
   local target="$box/apps/news-feed"
   for f in README.md Dockerfile docker-compose.yml Makefile pyproject.toml \
            .env.example .gitignore .dockerignore \
-           src/__init__.py src/main.py tests/__init__.py tests/test_smoke.py; do
+           src/__init__.py src/main.py tests/__init__.py tests/test_smoke.py \
+           AGENTS.md DONE.md AGENT-PROMPT.md notes/gotchas.md; do
     if [ ! -f "$target/$f" ]; then
       echo "missing file: $f"
       teardown_sandbox "$box"
@@ -287,5 +289,43 @@ test_scaffold_rolls_back_on_mid_run_failure() {
     teardown_sandbox "$box"
     return 1
   fi
+  teardown_sandbox "$box"
+}
+
+# ---------- agent contract files: substitution coverage ----------
+
+test_scaffold_substitutes_in_agents_md() {
+  local box; box=$(setup_sandbox)
+  ( cd "$box" && ./scripts/new-project.sh caching agents-check node >/dev/null )
+  local f="$box/caching/agents-check/AGENTS.md"
+  [ -f "$f" ] || { echo "missing AGENTS.md"; teardown_sandbox "$box"; return 1; }
+  if grep -q '__PROJECT_NAME__\|__CATEGORY__\|__PROJECT_TITLE__' "$f"; then
+    echo "unsubstituted placeholders in AGENTS.md"
+    grep -n '__' "$f" | head
+    teardown_sandbox "$box"
+    return 1
+  fi
+  grep -q 'agents-check' "$f" || { echo "agents-check not in AGENTS.md"; teardown_sandbox "$box"; return 1; }
+  # shellcheck disable=SC2016  # backticks in single quotes are literal markdown
+  grep -qF '`caching`' "$f" || { echo "category not in AGENTS.md"; teardown_sandbox "$box"; return 1; }
+  teardown_sandbox "$box"
+}
+
+test_scaffold_substitutes_in_done_and_prompt() {
+  local box; box=$(setup_sandbox)
+  ( cd "$box" && ./scripts/new-project.sh apps done-check python >/dev/null )
+  for f in "$box/apps/done-check/DONE.md" "$box/apps/done-check/AGENT-PROMPT.md" "$box/apps/done-check/notes/gotchas.md"; do
+    [ -f "$f" ] || { echo "missing $f"; teardown_sandbox "$box"; return 1; }
+    if grep -q '__PROJECT_NAME__\|__CATEGORY__\|__PROJECT_TITLE__' "$f"; then
+      echo "unsubstituted placeholders in $f"
+      teardown_sandbox "$box"
+      return 1
+    fi
+  done
+  grep -qF 'apps/done-check' "$box/apps/done-check/AGENT-PROMPT.md" || {
+    echo "AGENT-PROMPT.md missing project ref"
+    teardown_sandbox "$box"
+    return 1
+  }
   teardown_sandbox "$box"
 }
