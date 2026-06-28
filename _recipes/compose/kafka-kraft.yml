@@ -1,0 +1,33 @@
+# Recipe: single-broker Kafka 3.7 in KRaft mode (no Zookeeper)
+#
+# How to use: copy the `services:` entry below into your project's
+# docker-compose.yml.
+#
+# Client bootstrap: localhost:9092 from the host;
+#                   kafka:9092 from other services on the same docker network.
+#
+# This is the simplest possible Kafka — single broker, single controller. For
+# replication / partitioning practice, use the (deferred) kafka-3-broker recipe.
+
+services:
+
+  kafka:
+    image: bitnami/kafka:3.7
+    container_name: ${COMPOSE_PROJECT_NAME:-app}-kafka
+    restart: unless-stopped
+    environment:
+      KAFKA_CFG_NODE_ID: 0
+      KAFKA_CFG_PROCESS_ROLES: controller,broker
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka-data:/bitnami/kafka
+
+volumes:
+  kafka-data:
