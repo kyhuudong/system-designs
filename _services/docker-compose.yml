@@ -1,0 +1,121 @@
+# Shared sandbox infrastructure for the system-designs repo.
+# Brought up via top-level `make services-up`.
+# Each service uses a fixed host port so projects can hard-code endpoints.
+# Persistent state lives under ./data/<service>/ (gitignored).
+
+networks:
+  system-designs-sandbox:
+    name: system-designs-sandbox
+    driver: bridge
+
+services:
+
+  # ---- AWS API simulator (OSS LocalStack) ------------------------------
+  localstack:
+    image: localstack/localstack:3
+    container_name: sds-localstack
+    restart: unless-stopped
+    ports:
+      - "4566:4566"
+    environment:
+      DEBUG: "0"
+      SERVICES: "s3,sqs,sns,dynamodb,kms,secretsmanager,events,iam,logs,lambda"
+      PERSISTENCE: "1"
+      AWS_DEFAULT_REGION: "us-east-1"
+    volumes:
+      - ./data/localstack:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - system-designs-sandbox
+
+  # ---- GCP Pub/Sub emulator --------------------------------------------
+  gcloud-pubsub:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    container_name: sds-gcloud-pubsub
+    restart: unless-stopped
+    command: >
+      gcloud beta emulators pubsub start
+      --host-port=0.0.0.0:8085
+      --project=local-dev
+    ports:
+      - "8085:8085"
+    networks:
+      - system-designs-sandbox
+
+  # ---- GCP Firestore (Native mode) emulator ----------------------------
+  gcloud-firestore:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    container_name: sds-gcloud-firestore
+    restart: unless-stopped
+    command: >
+      gcloud beta emulators firestore start
+      --host-port=0.0.0.0:8086
+      --database-mode=firestore-native
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./data/gcloud-firestore:/data
+    networks:
+      - system-designs-sandbox
+
+  # ---- Azure Storage emulator (Blob / Queue / Table) -------------------
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    container_name: sds-azurite
+    restart: unless-stopped
+    command: >
+      azurite --loose
+      --blobHost 0.0.0.0
+      --queueHost 0.0.0.0
+      --tableHost 0.0.0.0
+      --location /data
+    ports:
+      - "10000:10000"   # blob
+      - "10001:10001"   # queue
+      - "10002:10002"   # table
+    volumes:
+      - ./data/azurite:/data
+    networks:
+      - system-designs-sandbox
+
+  # ---- S3-compatible object store --------------------------------------
+  minio:
+    image: minio/minio:latest
+    container_name: sds-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: "minioadmin"
+      MINIO_ROOT_PASSWORD: "minioadmin"
+    ports:
+      - "9000:9000"     # API
+      - "9001:9001"     # web console
+    volumes:
+      - ./data/minio:/data
+    networks:
+      - system-designs-sandbox
+
+  # ---- Fake SMTP for testing email flows -------------------------------
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: sds-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"     # SMTP
+      - "8025:8025"     # web UI
+    networks:
+      - system-designs-sandbox
+
+  # ---- Distributed tracing (all-in-one) --------------------------------
+  jaeger:
+    image: jaegertracing/all-in-one:1.55
+    container_name: sds-jaeger
+    restart: unless-stopped
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686"   # web UI
+      - "4317:4317"     # OTLP gRPC
+      - "4318:4318"     # OTLP HTTP
+    networks:
+      - system-designs-sandbox
