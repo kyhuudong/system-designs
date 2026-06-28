@@ -180,6 +180,7 @@ test_scaffold_substitutes_category() {
     teardown_sandbox "$box"
     return 1
   fi
+  # shellcheck disable=SC2016  # backticks in single quotes are literal markdown
   grep -q '`caching`' "$target/README.md" || { teardown_sandbox "$box"; return 1; }
   teardown_sandbox "$box"
 }

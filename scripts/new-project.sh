@@ -64,6 +64,7 @@ fi
 
 # Atomic: if anything below fails, remove the half-created target.
 # $TARGET_DIR was verified to NOT exist above, so removing it is safe.
+# shellcheck disable=SC2154  # rc is assigned in the trap body itself
 trap 'rc=$?; if [ -n "${TARGET_DIR:-}" ] && [ -e "$TARGET_DIR" ]; then rm -rf "$TARGET_DIR"; echo "scaffold failed; cleaned up $TARGET_DIR" >&2; fi; exit $rc' ERR
 
 # Build a Title Case version of the kebab-case name: "url-shortener" -> "Url Shortener".

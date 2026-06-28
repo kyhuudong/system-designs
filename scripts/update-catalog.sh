@@ -98,6 +98,7 @@ for cat in $CATEGORIES; do
 done
 
 if [ ! -s "$TMPDIR_OUT/block" ]; then
+  # shellcheck disable=SC2016  # backticks in single quotes are literal markdown
   printf '\n_No projects yet. Run `make new CATEGORY=<cat> NAME=<name> LANG=<node|python>`._\n\n' > "$TMPDIR_OUT/block"
 fi
 

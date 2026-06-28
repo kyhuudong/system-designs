@@ -63,7 +63,7 @@ test_update_catalog_script_exists() {
 
 test_update_catalog_replaces_managed_block() {
   local box; box=$(setup_catalog_sandbox)
-  make_project "$box" caching foo done node
+  make_project "$box" caching foo "done" node
   ( cd "$box" && ./scripts/update-catalog.sh ) >/dev/null
   local block; block=$(read_catalog_block "$box")
   echo "$block" | grep -q '_placeholder_' && { echo "placeholder still present"; teardown_catalog_sandbox "$box"; return 1; }
@@ -73,7 +73,7 @@ test_update_catalog_replaces_managed_block() {
 
 test_update_catalog_preserves_surrounding_text() {
   local box; box=$(setup_catalog_sandbox)
-  make_project "$box" caching foo done node
+  make_project "$box" caching foo "done" node
   ( cd "$box" && ./scripts/update-catalog.sh ) >/dev/null
   grep -q '^# fake repo$' "$box/README.md" || { echo "title missing"; teardown_catalog_sandbox "$box"; return 1; }
   grep -q '^## Quick start$' "$box/README.md" || { echo "preamble removed"; teardown_catalog_sandbox "$box"; return 1; }
@@ -83,9 +83,9 @@ test_update_catalog_preserves_surrounding_text() {
 
 test_update_catalog_groups_by_category_sorted() {
   local box; box=$(setup_catalog_sandbox)
-  make_project "$box" caching bbb done node
-  make_project "$box" caching aaa done node
-  make_project "$box" apps zzz done python
+  make_project "$box" caching bbb "done" node
+  make_project "$box" caching aaa "done" node
+  make_project "$box" apps zzz "done" python
   ( cd "$box" && ./scripts/update-catalog.sh ) >/dev/null
   local block; block=$(read_catalog_block "$box")
   local apps_line caching_line
@@ -146,7 +146,7 @@ test_update_catalog_missing_markers_errors() {
 
 test_update_catalog_is_idempotent() {
   local box; box=$(setup_catalog_sandbox)
-  make_project "$box" caching foo done node
+  make_project "$box" caching foo "done" node
   ( cd "$box" && ./scripts/update-catalog.sh ) >/dev/null
   cp "$box/README.md" "$box/README.first.md"
   ( cd "$box" && ./scripts/update-catalog.sh ) >/dev/null
@@ -161,7 +161,7 @@ test_update_catalog_is_idempotent() {
 
 test_update_catalog_skips_underscore_and_dot_dirs() {
   local box; box=$(setup_catalog_sandbox)
-  make_project "$box" apps real done node
+  make_project "$box" apps real "done" node
   mkdir -p "$box/_templates/junk" "$box/.hidden/junk" "$box/_services/foo"
   ( cd "$box" && ./scripts/update-catalog.sh ) >/dev/null
   local block; block=$(read_catalog_block "$box")
