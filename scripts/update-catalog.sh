@@ -43,7 +43,9 @@ status_for() {
 title_for() {
   local dir="$1"
   if [ -f "$dir/README.md" ]; then
-    head -n5 "$dir/README.md" | grep -m1 -E '^#[[:space:]]' | sed -E 's/^#[[:space:]]+//'
+    # The `|| true` keeps a grep miss from killing the pipeline under
+    # `set -euo pipefail` (a no-title README must fall back to basename below).
+    head -n5 "$dir/README.md" | { grep -m1 -E '^#[[:space:]]' || true; } | sed -E 's/^#[[:space:]]+//'
   else
     basename "$dir"
   fi

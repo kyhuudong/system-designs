@@ -169,3 +169,40 @@ test_update_catalog_skips_underscore_and_dot_dirs() {
   echo "$block" | grep -F 'real' >/dev/null || { echo "real project missing"; teardown_catalog_sandbox "$box"; return 1; }
   teardown_catalog_sandbox "$box"
 }
+
+# ---------- regression: README without # Title shouldn't abort the script ----------
+
+test_update_catalog_tolerates_titleless_readme() {
+  local box; box=$(setup_catalog_sandbox)
+  mkdir -p "$box/apps/notitle"
+  # README intentionally has no top-level heading in first 5 lines.
+  cat > "$box/apps/notitle/README.md" <<'README'
+<!-- nothing but comments and prose here -->
+
+This project's design doc was started but a heading hasn't been chosen yet.
+
+## Subsection only
+
+Body text.
+README
+  echo "done" > "$box/apps/notitle/.status"
+  echo '{"name":"x"}' > "$box/apps/notitle/package.json"
+
+  ( cd "$box" && ./scripts/update-catalog.sh ) >/dev/null
+  local rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "script exited $rc on titleless README"
+    teardown_catalog_sandbox "$box"
+    return 1
+  fi
+
+  local block; block=$(read_catalog_block "$box")
+  # Title should fall back to the project basename when no '# Title' line exists.
+  echo "$block" | grep -F 'notitle' >/dev/null || {
+    echo "project missing from catalog"
+    echo "block was:"; echo "$block"
+    teardown_catalog_sandbox "$box"
+    return 1
+  }
+  teardown_catalog_sandbox "$box"
+}

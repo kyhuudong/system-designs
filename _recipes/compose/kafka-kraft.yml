@@ -3,8 +3,11 @@
 # How to use: copy the `services:` entry below into your project's
 # docker-compose.yml.
 #
-# Client bootstrap: localhost:9092 from the host;
-#                   kafka:9092 from other services on the same docker network.
+# Two listeners (dual-listener is required when projects connect from BOTH
+# the host AND from other containers — Kafka's advertised.listeners can't
+# satisfy both with a single endpoint):
+#   bootstrap from the host: localhost:9092
+#   bootstrap from another container on the same docker network: kafka:29092
 #
 # This is the simplest possible Kafka — single broker, single controller. For
 # replication / partitioning practice, use the (deferred) kafka-3-broker recipe.
@@ -19,10 +22,11 @@ services:
       KAFKA_CFG_NODE_ID: 0
       KAFKA_CFG_PROCESS_ROLES: controller,broker
       KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,INTERNAL://:29092
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,INTERNAL://kafka:29092
       KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT
       KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
     ports:
       - "9092:9092"
